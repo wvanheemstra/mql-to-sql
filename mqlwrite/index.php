@@ -1061,19 +1061,7 @@ function handle_query($mql_query_envelop, $query_key=0){
     process_mql($mql_query, $tree);	
     generate_sql($tree, $sql_queries, 0);  	
     execute_sql_queries($sql_queries);
-	
-	
-	// HIER GEBLEVEN
-	
-	
-	
-	$result = [$sql_queries];  // for debugging only
-
-	
-	
-
-
-	
+    $result = &$sql_queries[0]['results'];	
 	//get the sql statements out for debugging purposes
     $sql_statements = array();
 	$return_value = array(
@@ -1081,8 +1069,12 @@ function handle_query($mql_query_envelop, $query_key=0){
     ,   'result'    =>  $result
     );
 	if ($debug_info) {
-
-	
+        foreach ($sql_queries as $sql_query_index => $sql_query) {
+            $sql_statements[] = array(
+                                    'statement' =>  $sql_query['sql']
+                                ,   'params'    =>  $sql_query['params']
+                                );
+        }
 		$return_value['sql'] = $sql_statements;
 		callstack_push('end query #'.$query_key);
 		$return_value['timing'] = $callstack;
@@ -1099,15 +1091,17 @@ function handle_query($mql_query_envelop, $query_key=0){
 *
 *   return:     an associative array of result envelopes
 */
-
-
-
-
-
-
-
-
-
+function handle_queries($queries){
+    $queries = get_object_vars($queries);
+    $results = array(
+        'code' =>  '/api/status/ok'
+    );
+    foreach ($queries as $query_key => $query){
+        $result = handle_query($query, $query_key);
+        $results[$query_key] = $result;
+    }
+    return $results;
+}
 
 /*****************************************************************************
 *   Schema
