@@ -788,7 +788,7 @@ function prepare_sql_statement($statement_text){
         $statement_cache[$statement_text] = $statement_handle;
     }
 	
-	echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
+	//echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
 	
     return $statement_handle;
 }
