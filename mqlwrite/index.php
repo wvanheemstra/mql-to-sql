@@ -803,22 +803,51 @@ function get_query_sql($query){
     $identifier_quote_start = $sql_dialect['identifier_quote_start'];
     $identifier_quote_end = $sql_dialect['identifier_quote_end'];
 
-
-
-
+	// ADDED by wvh for UPDATE
+    $sql = 'UPDATE';
+	
+	// ADDED by wvh for UPDATE
+    foreach ($query['update'] as $index => $update_line) {
+        if (array_key_exists('table', $update_line)) {
+            $sql .= " ".$update_line['table'].' '.$update_line['alias']; // wvh: Do we need an alias of the table here??
+        }
+	}
+	
+	// ADDED by wvh for SET	
+    $set = $query['set'];
+	$sql .= "\n".$set;
+	
+	$optionality_groups = array();
+	
+    $where = $query['where'];
+    foreach ($optionality_groups as $k => $v) {
+        $condition_null = '';
+        $condition_not_null = '';
+        foreach ($v as $optionality_group_column) {
+            if ($condition_null !== '') {
+                $condition_null.= ' AND ';
+            }
+            $condition_null .= $optionality_group_column.' IS NULL';
+            if ($condition_not_null !== '') {
+                $condition_not_null.= ' AND ';
+            }
+            $condition_not_null .= $optionality_group_column.' IS NOT NULL';
+        }
+        if ($where) {
+            $where .= "\nAND";
+        }
+        else {
+            $where .= "\nWHERE";
+        }
+        $where.= ' (('.$condition_null.') OR ('.$condition_not_null.'))';
+    }
+    
+    $sql .= ($where? "\n".$where : '')
+//    .       ($query['order_by']? "\n".$query['order_by'] : '')  // wvh: ORDER BY is not applicable to WRITE queries
+    ;	
+	
 	// HIER GEBLEVEN
 	
-	
-	
-    //TODO: this implementation of limit is buggy!
-    //It works fine if applied to a top-level mql node,
-    //When used for a nested mql node, it does not take into 
-    //account that the limit should be applied only to the nested node
-    if ($query['limit']) {
-        if ($sql_dialect['supports_limit']) {
-            $sql .= "\nLIMIT ".$query['limit'];
-        }
-    }
     return $sql;	
 }	
 
@@ -925,6 +954,8 @@ function execute_sql_queries(&$sql_queries) {
 		$result = &$sql_query['results'];
         $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN
 
+	
+	
 	
 	
 	
