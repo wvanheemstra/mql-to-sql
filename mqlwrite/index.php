@@ -15,20 +15,33 @@ function callstack_push($name){
 /*****************************************************************************
 *   General Functions
 ******************************************************************************/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function get_last_json_error(){
+    if (function_exists('json_last_error')){
+        $error = json_last_error();
+        $message = $error.': ';
+        switch($error){
+            case JSON_ERROR_NONE:
+                $message .= 'No error has occurred';
+                break;
+            case JSON_ERROR_DEPTH:
+                $message .= 'The maximum stack depth has been exceeded';
+                break;
+            case JSON_ERROR_CTRL_CHAR   :
+                $message .= 'Control character error, possibly incorrectly encoded';
+                break;
+            case JSON_ERROR_SYNTAX:
+                $message .= 'Syntax error';
+                break;
+            case JSON_ERROR_UTF8:
+                $message .= 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                break;
+        }
+    } 
+    else {
+        $message = 'function json_last_error() does not exist - no error information available. PHP version: '.phpversion();
+    }
+    return $message;
+}
 /*****************************************************************************
 *   MQL processing Functions
 ******************************************************************************/
@@ -518,9 +531,14 @@ function handle_filter_property(&$queries, $query_index, $t_alias, $column_name,
 		$set .= ','.$t_alias.'.'.$column_name; // ADDED by wvh: SET behaves like WHERE but not completely
     }	
     else {
-        $from_or_where = &$query['where'];
-        $from_or_where .= ($from_or_where? "\n".'AND' : 'WHERE')
-                        .' '.$t_alias.'.'.$column_name;					
+        $from_or_where = &$query['where'];	
+
+		// ADDED by wvh: to prevent more than one WHERE occurence in WRITE query
+		// NOTE: the indexed WHERE parameter (e.g. customer_id) needs therefor to be the FIRST one listed in the WRITE query!!!
+		if($from_or_where==''){
+			$from_or_where .= ($from_or_where? 'WHERE' : 'WHERE').' '.$t_alias.'.'.$column_name;
+		}
+						
 		$set .= ($set? ',' : 'SET').' '.$t_alias.'.'.$column_name; // ADDED by wvh: SET behaves like WHERE but not completely									
     }
 
@@ -617,7 +635,7 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
     $set = &$query['set'];				// added by wvh: SET behaves like WHERE, but not completely
     $select = &$query['select'];
     $from   = &$query['from'];
-    $where  = &$query['where'];
+    $where  = &$query['where'];	
     $params = &$query['params'];
     $indexes = &$query['indexes'];
     
@@ -834,7 +852,7 @@ function &execute_sql($statement_text, $params, $limit){
             );
         }
 		
-		//echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
+		echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
 		//exit;										// ADDED by wvh for debugging only
 		
         $statement_handle->execute();   // NOTE by wvh: CURRENTLY FAILS ON WHERE CLAUSE WHICH CONTAINS MORE THAN SOLELY THE ID FIELD !!! 
@@ -910,6 +928,7 @@ function get_query_sql($query){
     $sql .= ($set? "\n".$set : '');	// ADDED by wvh: SET behaves like WHERE but not completely
 	
     $where = $query['where'];
+/**	COMMENTED OUT by wvh: Momentarily not used for WRITE queries
     foreach ($optionality_groups as $k => $v) {
         $condition_null = '';
         $condition_not_null = '';
@@ -930,8 +949,8 @@ function get_query_sql($query){
             $where .= "\nWHERE";
         }
         $where.= ' (('.$condition_null.') OR ('.$condition_not_null.'))';
-    }	
-    
+    }
+*/	
     $sql .= ($where? "\n".$where : '')
 //    .       ($query['order_by']? "\n".$query['order_by'] : '')  // wvh: ORDER BY is not applicable to WRITE queries
     ;	
@@ -1038,7 +1057,6 @@ function add_entry_to_indexes(&$indexes, $row_index, &$row) {
         }
         $entries[$row[$cols[$i]]] = $row_index;
     }
-    
 }
 
 function &get_entry_from_index(&$query, $index_name, $key){
@@ -1175,7 +1193,7 @@ function execute_sql_queries(&$sql_queries) {
             array_unshift($from, $extra_from_line); 
 		}
 		$result = &$sql_query['results'];
-        $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN: Make sure that $sql_query['params'] is properly filled
+        $rows = execute_sql_query($sql_query);		// NOTE by wvh: Make sure that $sql_query['params'] is properly filled
 
         foreach($rows as $row_index => $row){
             if ($merge_into){            
@@ -1225,6 +1243,12 @@ function handle_query($mql_query_envelop, $query_key=0){
 	$tree = array();
 	reset_ids();
     process_mql($mql_query, $tree);	
+	
+	
+	
+	// CONTINUE FROM HERE
+	
+	
     generate_sql($tree, $sql_queries, 0);  	
     execute_sql_queries($sql_queries);
     $result = &$sql_queries[0]['results'];	
