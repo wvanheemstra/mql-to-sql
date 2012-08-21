@@ -489,7 +489,8 @@ function map_mql_to_pdo_type($mql_type){
     return $pdo_type;
 }
 
-function add_parameter(&$where, &$params, $value, $pdo_type){
+// RENAMED by wvh: Made this function specific for WHERE
+function add_where_parameter(&$where, &$params, $value, $pdo_type){
     $where .= ':'.($param_name = get_p_name());
     $params[] = array(
         'name'  =>  $param_name
@@ -498,7 +499,18 @@ function add_parameter(&$where, &$params, $value, $pdo_type){
     );
 }
 
-function add_parameter_for_property(&$where, &$params, $property){
+// ADDED by wvh: Made this function specific for SET
+function add_set_parameter(&$set, &$params, $value, $pdo_type){
+    $set .= ':'.($param_name = get_p_name());
+    $params[] = array(
+        'name'  =>  $param_name
+    ,   'value' =>  $value
+    ,   'type'  =>  $pdo_type
+    );
+}
+
+// RENAMED by wvh: Made this function specific for WHERE
+function add_parameter_for_where_property(&$where, &$params, $property){
     $property_value = $property['value'];
     $mql_type = $property['schema']['type'];
     $pdo_type = map_mql_to_pdo_type($mql_type);
@@ -508,11 +520,31 @@ function add_parameter_for_property(&$where, &$params, $property){
             if ($i){
                 $where .= ', ';
             }
-            add_parameter($where, $params, $property_value[$i], $pdo_type);
+            add_where_parameter($where, $params, $property_value[$i], $pdo_type);
         }
     }
     else {
-        add_parameter($where, $params, $property_value, $pdo_type);
+	
+//        add_where_parameter($where, $params, $property_value, $pdo_type);  // TEMPORARILY COMMENTED OUT by wvh to prevent more than one parameter values in WHERE clause
+    }
+}
+
+// ADDED by wvh: Made this function specific for SET
+function add_parameter_for_set_property(&$set, &$params, $property){
+    $property_value = $property['value'];
+    $mql_type = $property['schema']['type'];
+    $pdo_type = map_mql_to_pdo_type($mql_type);
+    if (is_array($property_value)) {
+        $num_entries = count($property_value);
+        for ($i=0; $i<$num_entries; $i++) {
+            if ($i){
+                $set .= ', ';
+            }
+            add_set_parameter($set, $params, $property_value[$i], $pdo_type);
+        }
+    }
+    else {
+        add_set_parameter($set, $params, $property_value, $pdo_type);
     }
 }
 
@@ -582,9 +614,9 @@ function handle_filter_property(&$queries, $query_index, $t_alias, $column_name,
         $from_or_where .= ' = ';
     }
     //prepare the right hand side of the comparison expression
-    add_parameter_for_property($set, $params, $property); // ADDED by wvh: SET behaves like WHERE but not completely
+    add_parameter_for_set_property($set, $params, $property); // ADDED by wvh: SET behaves like WHERE but not completely
 
-    add_parameter_for_property($from_or_where, $params, $property);	
+    add_parameter_for_where_property($from_or_where, $params, $property); // RENAMED by wvh: Now specific for WHERE parameters	
 	
     if ($add_closing_parenthesis) {
         $from_or_where .= ')';
