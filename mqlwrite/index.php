@@ -973,20 +973,125 @@ function get_result_object(&$mql_node, $query_index, &$result_object=NULL, $key=
     return $object;
 }
 
+function fill_result_object(&$mql_node, $query_index, $data, &$result_object){
+    global $explicit_type_conversion;
+    if($mql_node['query_index']!==$query_index){
+        return;
+    }
 
+    if ($entries = &$mql_node['entries']) {
+        fill_result_object($entries, $query_index, $data, $result_object[0]);
+    }
+    else
+    if ($properties = &$mql_node['properties']) {
+        foreach ($result_object as $key => $value) {
+            $property = $properties[$key];
+            if (is_object($value) || is_array($value)){
+                fill_result_object($property, $query_index, $data, $result_object[$key]);
+            }
+            else
+            if (isset($property['alias'])) {
+                                $alias = $property['alias'];
+                if ($explicit_type_conversion) {
+                    if (!is_null($data[$alias])) {
+                        settype($data[$alias], map_mql_to_php_type($property['schema']['type']));
+                    }
+                }
+                $result_object[$key] = $data[$alias];
+            }
+        }
+    }
+        
+}
 
+function add_entry_to_indexes(&$indexes, $row_index, &$row) {
+    foreach($indexes as $index_name => &$index) {
+        $entries = &$index['entries'];
+        $cols = $index['columns'];
+        $colcount = count($cols) - 1;
+        for ($i=0; $i<$colcount; $i++){
+            $col = $cols[$i];
+            $sub_entries = &$entries[$row[$col]];
+            if (!$sub_entries) {
+                $sub_entries = array();
+                $entries[$row[$col]] = &$sub_entries;                
+            }
+            $entries = &$sub_entries;
+        }
+        $entries[$row[$cols[$i]]] = $row_index;
+    }
+    
+}
 
+function &get_entry_from_index(&$query, $index_name, $key){
+    $index = $query['indexes'][$index_name]['entries'];
+    foreach ($key as $k) {
+        $index = $index[$k];
+    }
+    $results = &$query['results'];
+    return $results[$index];    
+}
 
+function merge_result_object(&$mql_node, &$result_object, $query_index, &$data, $from, $to){
+    if (isset($mql_node['entries'])) {
+        merge_result_object($mql_node['entries'], $result_object[0], $query_index, $data, $from, $to);
+    }
+    else
+    if (isset($mql_node['properties'])) {
+                $properties = $mql_node['properties'];
+        foreach ($properties as $property_key => $property) {
+            if ($property['operator']) {
+                continue;
+            }
+            if (isset($property['query_index']) && ($property['query_index']===$query_index)) {
+                $result_object[$property_key] = array();
+                $target = &$result_object[$property_key];
+                for ($i=$from; $i<=$to; $i++){
+                    $target[] = &$data[$i];
+                }
+            }
+            else {
+                $value = $property['value'];
+                if (is_object($value) || is_array($value)){
+                    merge_result_object($property, $result_object[$property_key], $query_index, $data, $from, $to);
+                }
+            }
+        }
+    }
+}
 
+function merge_results(&$queries, $query_index, $key, $from, $to){
+    if ($from===-1){
+        return;
+    }
+    $query = &$queries[$query_index];
+    $merge_into = $query['merge_into'];
+    $target_query_index = $merge_into['query_index'];
+    $target_query = &$queries[$target_query_index];
+    $index_name = $merge_into['index'];
+    $merge_target = &get_entry_from_index($target_query, $index_name, $key);    
+    merge_result_object($target_query['mql_node'], $merge_target, $query_index, $query['results'], $from, $to);
+}
 
+function create_inline_table_for_index_entry(&$entries, $columns, $column_index, &$statement, &$row){
+    global $pdo, $sql_dialect;
+    $single_row_from_clause = $sql_dialect['single_row_from_clause'];
+    foreach ($entries as $key => $value) {
+        $row    .=  ($row === ''? 'SELECT ' : ', ')
+                .   (is_string($key)? $pdo->quote($key) : $key)
+                .   ($statement === '' ? ' AS '.$columns[$column_index] : '')
+                ;
 
-
-
-
-
-
-
-
+        if (is_array($value)){
+            create_inline_table_for_index_entry($value, $columns, $column_index+1, $statement, $row);
+        }
+        else
+        if (is_int($value)) {
+            $statement .= ($statement==='' ? '' : "\nUNION ALL\n").$row.$single_row_from_clause;
+            $row = '';
+        }
+    }    
+}
 
 function create_inline_table_for_index(&$index){
     $statement = '';
