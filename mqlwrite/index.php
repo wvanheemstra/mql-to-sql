@@ -974,6 +974,34 @@ function get_result_object(&$mql_node, $query_index, &$result_object=NULL, $key=
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function create_inline_table_for_index(&$index){
+    $statement = '';
+    $row = '';
+    create_inline_table_for_index_entry($index['entries'], $index['columns'], 0, $statement, $row);
+    $statement = "(\n".$statement."\n)";
+    $index['inline_table'] = $statement;
+}
+
+function create_inline_tables_for_indexes(&$indexes){
+    foreach ($indexes as &$index) {
+        create_inline_table_for_index($index);
+    }
+}
+
 /**
 *   execute_sql_queries(&$sql_queries)
 *   Executes multiple SQL queries
@@ -1026,10 +1054,25 @@ function execute_sql_queries(&$sql_queries) {
 		$result = &$sql_query['results'];
         $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN: Make sure that $sql_query['params'] is properly filled
 
-	
-	
-	
-	
+        foreach($rows as $row_index => $row){
+            if ($merge_into){            
+                foreach ($merge_into_columns as $col_index => $alias){
+                    $merge_into_values_new[$col_index] = $row[$alias];
+                }
+                if ($merge_into_values_new !== $merge_into_values_old){
+                    merge_results($sql_queries, $sql_query_index, $merge_into_values_old, $offset, $row_index);
+                    $offset = $row_index;
+                }
+                $merge_into_values_old = $merge_into_values_new;
+            }
+            fill_result_object($mql_node, $sql_query_index, $row, $result_object);
+            $result[$row_index] = $result_object;
+            add_entry_to_indexes($indexes, $row_index, $row);
+        }
+        create_inline_tables_for_indexes($indexes);
+        if (isset($merge_into_values_old) && count($merge_into_values_old)) {
+            merge_results($sql_queries, $sql_query_index, $merge_into_values_old, $offset, $row_index);
+        }		
 	
 	}
 }
