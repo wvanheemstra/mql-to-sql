@@ -1,0 +1,10 @@
+{
+    "pdo": {
+        "dsn": "sqlite:/home/roland/mql-to-sql/data/sakila.sqlite",
+        "username": null,
+        "password": null,
+        "driver_options": {
+        }
+    },
+    "explicit_type_conversion": true
+}

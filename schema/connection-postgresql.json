@@ -1,0 +1,10 @@
+{
+    "pdo": {
+        "dsn": "pgsql:host=localhost port=5432 dbname=pagila",
+        "username": "postgres",
+        "password": "postgres",
+        "driver_options": {
+        }
+    },
+    "explicit_type_conversion": true
+}

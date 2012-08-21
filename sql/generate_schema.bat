@@ -1,0 +1,1 @@
+mysql.exe --no-beep -usakila -psakila -P3351 -Nrs -e"source generate_schema.sql" > ../schema/schema.json

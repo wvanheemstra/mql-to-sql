@@ -1,0 +1,10 @@
+{
+    "pdo": {
+        "dsn": "mysql:dbname=;host=localhost;port=3306",
+        "username": "sakila",
+        "password": "sakila",
+        "driver_options": {
+        }
+    },
+    "explicit_type_conversion": true
+}

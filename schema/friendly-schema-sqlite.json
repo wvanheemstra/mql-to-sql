@@ -1,0 +1,1085 @@
+{
+    "domains": {
+        "sakila": {
+            "schema_name": "",
+            "types": {
+                "actor": {
+                    "properties": {
+                        "actor_id": {
+                            "column_name": "actor_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "first_name": {
+                            "column_name": "first_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "starring_in": {
+                            "type": "/sakila/film_actor",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "actor_id",
+                                    "referenced_column": "actor_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_name": {
+                            "column_name": "last_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["actor_id"]
+                        }
+                    }
+                },
+                "address": {
+                    "properties": {
+                        "address": {
+                            "column_name": "address",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "address2": {
+                            "column_name": "address2",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "address_id": {
+                            "column_name": "address_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "city_id": {
+                            "column_name": "city_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "district": {
+                            "column_name": "district",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "city": {
+                            "type": "/sakila/city",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "city_id",
+                                    "referenced_column": "city_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "address_of_customers": {
+                            "type": "/sakila/customer",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "address_of_staff_members": {
+                            "type": "/sakila/staff",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "address_of_store": {
+                            "type": "/sakila/store",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "phone": {
+                            "column_name": "phone",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "postal_code": {
+                            "column_name": "postal_code",
+                            "nullable": true,
+                            "type": "/type/text"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["address_id"]
+                        }
+                    }
+                },
+                "category": {
+                    "properties": {
+                        "category_id": {
+                            "column_name": "category_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "films": {
+                            "type": "/sakila/film_category",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "category_id",
+                                    "referenced_column": "category_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "category_name": {
+                            "column_name": "name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        }
+                    },
+                    "default_property": "category_name",
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["category_id"]
+                        }
+                    }
+                },
+                "city": {
+                    "properties": {
+                        "city": {
+                            "column_name": "city",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "city_id": {
+                            "column_name": "city_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "country_id": {
+                            "column_name": "country_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "addresses": {
+                            "type": "/sakila/address",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "city_id",
+                                    "referenced_column": "city_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "country": {
+                            "type": "/sakila/country",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "country_id",
+                                    "referenced_column": "country_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["city_id"]
+                        }
+                    }
+                },
+                "country": {
+                    "properties": {
+                        "country": {
+                            "column_name": "country",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "country_id": {
+                            "column_name": "country_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "cities": {
+                            "type": "/sakila/city",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "country_id",
+                                    "referenced_column": "country_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["country_id"]
+                        }
+                    }
+                },
+                "customer": {
+                    "properties": {
+                        "active": {
+                            "column_name": "active",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "address_id": {
+                            "column_name": "address_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "create_date": {
+                            "column_name": "create_date",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "customer_id": {
+                            "column_name": "customer_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "email": {
+                            "column_name": "email",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "first_name": {
+                            "column_name": "first_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "address": {
+                            "type": "/sakila/address",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "registered_at": {
+                            "type": "/sakila/store",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "payments": {
+                            "type": "/sakila/payment",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "customer_id",
+                                    "referenced_column": "customer_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "rentals": {
+                            "type": "/sakila/rental",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "customer_id",
+                                    "referenced_column": "customer_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_name": {
+                            "column_name": "last_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "store_id": {
+                            "column_name": "store_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["customer_id"]
+                        }
+                    }
+                },
+                "film": {
+                    "properties": {
+                        "description": {
+                            "column_name": "description",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "film_id": {
+                            "column_name": "film_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "actors": {
+                            "type": "/sakila/film_actor",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "categories": {
+                            "type": "/sakila/film_category",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "language": {
+                            "type": "/sakila/language",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "language_id",
+                                    "referenced_column": "language_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "original_language": {
+                            "type": "/sakila/language",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "original_language_id",
+                                    "referenced_column": "language_id"
+                                }
+                            ],
+                            "nullable": true
+                        },
+                        "in_inventory": {
+                            "type": "/sakila/inventory",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "language_id": {
+                            "column_name": "language_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "length": {
+                            "column_name": "length",
+                            "nullable": true,
+                            "type": "/type/int"
+                        },
+                        "original_language_id": {
+                            "column_name": "original_language_id",
+                            "nullable": true,
+                            "type": "/type/int"
+                        },
+                        "rating": {
+                            "column_name": "rating",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "release_year": {
+                            "column_name": "release_year",
+                            "nullable": true,
+                            "type": "/type/year"
+                        },
+                        "rental_duration": {
+                            "column_name": "rental_duration",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "rental_rate": {
+                            "column_name": "rental_rate",
+                            "nullable": false,
+                            "type": "/type/float"
+                        },
+                        "replacement_cost": {
+                            "column_name": "replacement_cost",
+                            "nullable": false,
+                            "type": "/type/float"
+                        },
+                        "special_features": {
+                            "column_name": "special_features",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "title": {
+                            "column_name": "title",
+                            "nullable": false,
+                            "type": "/type/text"
+                        }
+                    },
+                    "default_property": "title",
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["film_id"]
+                        }
+                    }
+                },
+                "film_actor": {
+                    "properties": {
+                        "actor_id": {
+                            "column_name": "actor_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "film_id": {
+                            "column_name": "film_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "actor": {
+                            "type": "/sakila/actor",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "actor_id",
+                                    "referenced_column": "actor_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "film": {
+                            "type": "/sakila/film",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        }
+                    },
+                    "default_property": "last_update",
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["actor_id","film_id"]
+                        }
+                    }
+                },
+                "film_category": {
+                    "properties": {
+                        "category_id": {
+                            "column_name": "category_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "film_id": {
+                            "column_name": "film_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "category": {
+                            "type": "/sakila/category",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "category_id",
+                                    "referenced_column": "category_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "film": {
+                            "type": "/sakila/film",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["film_id","category_id"]
+                        }
+                    }
+                },
+                "inventory": {
+                    "properties": {
+                        "film_id": {
+                            "column_name": "film_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "film": {
+                            "type": "/sakila/film",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "film_id",
+                                    "referenced_column": "film_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "store": {
+                            "type": "/sakila/store",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "rentals": {
+                            "type": "/sakila/rental",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "inventory_id",
+                                    "referenced_column": "inventory_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "inventory_id": {
+                            "column_name": "inventory_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "store_id": {
+                            "column_name": "store_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["inventory_id"]
+                        }
+                    }
+                },
+                "language": {
+                    "properties": {
+                        "language_of": {
+                            "type": "/sakila/film",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "language_id",
+                                    "referenced_column": "language_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "original_language_of": {
+                            "type": "/sakila/film",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "original_language_id",
+                                    "referenced_column": "language_id"
+                                }
+                            ],
+                            "nullable": true
+                        },
+                        "language_id": {
+                            "column_name": "language_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "language_name": {
+                            "column_name": "name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        }
+                    },
+                    "default_property": "language_name",
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["language_id"]
+                        }
+                    }
+                },
+                "payment": {
+                    "properties": {
+                        "amount": {
+                            "column_name": "amount",
+                            "nullable": false,
+                            "type": "/type/float"
+                        },
+                        "customer_id": {
+                            "column_name": "customer_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "paid_by_customer": {
+                            "type": "/sakila/customer",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "customer_id",
+                                    "referenced_column": "customer_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "paid_for_rental": {
+                            "type": "/sakila/rental",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "rental_id",
+                                    "referenced_column": "rental_id"
+                                }
+                            ],
+                            "nullable": true
+                        },
+                        "paid_to_staff": {
+                            "type": "/sakila/staff",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "payment_date": {
+                            "column_name": "payment_date",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "payment_id": {
+                            "column_name": "payment_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "rental_id": {
+                            "column_name": "rental_id",
+                            "nullable": true,
+                            "type": "/type/int"
+                        },
+                        "staff_id": {
+                            "column_name": "staff_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["payment_id"]
+                        }
+                    }
+                },
+                "rental": {
+                    "properties": {
+                        "customer_id": {
+                            "column_name": "customer_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "payments": {
+                            "type": "/sakila/payment",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "rental_id",
+                                    "referenced_column": "rental_id"
+                                }
+                            ],
+                            "nullable": true
+                        },
+                        "rented_by_customer": {
+                            "type": "/sakila/customer",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "customer_id",
+                                    "referenced_column": "customer_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "rented_from_inventory": {
+                            "type": "/sakila/inventory",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "inventory_id",
+                                    "referenced_column": "inventory_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "rented_by_staff": {
+                            "type": "/sakila/staff",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "inventory_id": {
+                            "column_name": "inventory_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "rental_date": {
+                            "column_name": "rental_date",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "rental_id": {
+                            "column_name": "rental_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "return_date": {
+                            "column_name": "return_date",
+                            "nullable": true,
+                            "type": "/type/datetime"
+                        },
+                        "staff_id": {
+                            "column_name": "staff_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["rental_id"]
+                        },
+                        "rental_date": {
+                            "type": "UNIQUE",
+                            "columns": ["rental_date","inventory_id","customer_id"]
+                        }
+                    }
+                },
+                "staff": {
+                    "properties": {
+                        "active": {
+                            "column_name": "active",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "address_id": {
+                            "column_name": "address_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "email": {
+                            "column_name": "email",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "first_name": {
+                            "column_name": "first_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "received_payments": {
+                            "type": "/sakila/payment",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "handled_rentals": {
+                            "type": "/sakila/rental",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "address": {
+                            "type": "/sakila/address",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "works_at_store": {
+                            "type": "/sakila/store",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "manages_store": {
+                            "type": "/sakila/store",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "manager_staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_name": {
+                            "column_name": "last_name",
+                            "nullable": false,
+                            "type": "/type/text"
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "password": {
+                            "column_name": "password",
+                            "nullable": true,
+                            "type": "/type/text"
+                        },
+                        "picture": {
+                            "column_name": "picture",
+                            "nullable": true,
+                            "type": "/type/content"
+                        },
+                        "staff_id": {
+                            "column_name": "staff_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "store_id": {
+                            "column_name": "store_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "username": {
+                            "column_name": "username",
+                            "nullable": false,
+                            "type": "/type/text"
+                        }
+                    },
+                    "keys": {
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["staff_id"]
+                        }
+                    }
+                },
+                "store": {
+                    "properties": {
+                        "address_id": {
+                            "column_name": "address_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "has_registered_customers": {
+                            "type": "/sakila/customer",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "has_inventory_items": {
+                            "type": "/sakila/inventory",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "has_staff_members": {
+                            "type": "/sakila/staff",
+                            "direction": "referenced<-referencing",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "store_id",
+                                    "referenced_column": "store_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "is_located_at_address": {
+                            "type": "/sakila/address",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "address_id",
+                                    "referenced_column": "address_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "managed_by": {
+                            "type": "/sakila/staff",
+                            "direction": "referencing->referenced",
+                            "join_condition": [
+                                {
+                                    "referencing_column": "manager_staff_id",
+                                    "referenced_column": "staff_id"
+                                }
+                            ],
+                            "nullable": false
+                        },
+                        "last_update": {
+                            "column_name": "last_update",
+                            "nullable": false,
+                            "type": "/type/datetime"
+                        },
+                        "manager_staff_id": {
+                            "column_name": "manager_staff_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        },
+                        "store_id": {
+                            "column_name": "store_id",
+                            "nullable": false,
+                            "type": "/type/int"
+                        }
+                    },
+                    "keys": {
+                        "idx_unique_manager": {
+                            "type": "UNIQUE",
+                            "columns": ["manager_staff_id"]
+                        },
+                        "PRIMARY": {
+                            "type": "PRIMARY KEY",
+                            "columns": ["store_id"]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

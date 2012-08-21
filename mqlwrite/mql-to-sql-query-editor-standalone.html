@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>MQL to SQL Query Editor</title>
+        <style type="text/css">
+            * {
+                font-family: arial;
+                font-size: 10pt;
+            }
+            
+            body {
+            }
+            
+            table {
+                height: 100%;
+                position: absolute;
+                top: 0px;
+                bottom:0px;
+                left: 0px;
+                right:0px;
+                width:100%;
+            }
+            td {
+                vertical-align: top;
+                align: left;
+            }
+            
+            textarea {
+                border-style:solid;
+                border-width:1px;
+                color:blue;
+                background-color:rgb(255,255,170);
+                font-family: monospace;
+                width: 100%;
+                height:100%;
+                top:0px;
+                bottom:0px;
+            }
+
+            .header {
+                height: 12px;
+            }
+            
+            .top {
+                height: 35px;
+            }
+            
+            .left {
+                width: 75px;
+                height: 30%;
+            }
+            
+            .right {
+                height: 30%;
+            }
+            
+            button {
+                
+            }
+        </style>
+    </head>
+    <body>
+        <table cellpadding="0" callspacing="0">
+            <tr>
+                <td class="top" colspan="2">
+                    <a  href="http://code.google.com/p/mql-to-sql/" 
+                        target="mql-to-sql"
+                        title="mql-to-sql project homepage hosted at google code."
+                    >Project: mql-to-sql</a>
+                    |
+                    <a
+                        href="http://www.freebase.com/docs/data"
+                        target="freebase"
+                        title="Homepage of Freebase, the open collaborative data project that uses MQL as its native query language, and main source of inspiration for this project."
+                    >Freebase</a>
+                    |
+                    <a
+                        href="http://www.freebase.com/docs/mql"
+                        target="freebase"
+                        title="MQL reference. This is the most complete description of the MQL query language today. Note that mql-to-sql currently implements a subset of the MQL grammar, with some extensions."
+                    >MQL Reference</a>
+                    |
+                    <a
+                        href="https://docs.google.com/viewer?url=http://download.freebase.com/MQLcheatsheet-081208.pdf"
+                        target="freebase"
+                        title="MQL Cheatsheet provides a concise overview of MQL language features"
+                    >MQL Cheatsheet</a>
+                    |
+                    <a
+                        href="http://dev.mysql.com/doc/sakila/en/sakila.html"
+                        target="mql-to-sql"
+                        title="Documentation to the Sakila sample database. This query editor allows you to query this sample database using MQL."
+                    >Sakila Sample Database</a>
+                </td>
+            </tr>
+            <tr>
+                <td class="left" rowspan="2">
+                    <button 
+                        type="button"
+                        id="btnExecute"
+                        title="Hit this button to execute your MQL query against the Sakila sample database"
+                    >Execute MQLWrite</button>
+                </td>
+                <td class="header">
+                    Debug: <input id="debug" type="checkbox"/>
+                    No Execute: <input id="noexecute" type="checkbox"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="right">
+                    <textarea 
+                        id="txtQuery" 
+                        rows="5" 
+                        title="Type your MQL query here."
+                    ></textarea>
+                </td>
+            </tr>
+            <tr><td></td><td class="header">Result:</td></tr>
+            <tr style="height:70%">
+                <td>
+                </td>
+                <td class="right">
+                    <textarea 
+                        id="txtResult" 
+                        rows="20"
+                        title="This is where the JSON result of you MQL query will be returned"
+                    ></textarea>
+                </td>
+            </tr>
+        </table>        
+        
+        <!-- Script for the query editor -->
+        <script type="text/javascript">
+            (function () {
+
+                function validateJSON(txt){
+                    var o = JSON.parse(txt);
+                    var t = JSON.stringify(o, null, 2);
+                    return t;
+                }
+            
+                function setResult(v){
+                    document.getElementById("txtResult").value = v;
+                }
+
+                function doMQLReadRequest(query){
+                    var queryEnvelope = "{"    +
+                        "\"query\":" + query   +
+                      (document.getElementById("debug").checked ? ", \"debug_info\": true" : "") +
+                      (document.getElementById("noexecute").checked ? ", \"noexecute\": true" : "") +
+                      "}";
+                    var url = "index.php?query=" + encodeURIComponent(queryEnvelope);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", url, true);
+                    xhr.setRequestHeader("Accept", "application/json");
+                    xhr.onreadystatechange = function(){
+                        switch (this.readyState) {
+                            case 4:
+                                switch (this.status) {
+                                    case 200:
+                                        handleMQLReadResponse(this);
+                                        break;
+                                    default:
+                                        handleMQLReadFailure(this);
+                                }
+                                break;
+                            default:
+                        }
+                    };
+                    xhr.send(null);
+                }                
+                
+                function handleMQLReadFailure(response){
+                    alert("Snap, something went wrong :("+
+                    "\n"+ "http status code: " + response.status + 
+                    "\n"+ "http status text: " + response.statusText
+                    );
+                }
+                
+                function handleMQLReadResponse(response){
+                    var t, rt = response.responseText;
+                    try {
+                        t = validateJSON(rt);                        
+                    } catch(e) {
+                        t = "Error in response:\n" + e + 
+                            "\nRaw responseText:\n\n" + rt;
+                    }
+                    setResult(t);
+                }
+
+                var rst = document.getElementById("txtResult");
+                
+                document.getElementById("btnExecute").onclick = function(){
+                    try {
+                        setResult("");
+                        var txtQuery = document.getElementById("txtQuery");
+                        var query = txtQuery.value;
+                        var o = eval("(" + query + ")");
+                        doMQLReadRequest(JSON.stringify(o, null, 0));
+                    } catch (e) {
+                        setResult(e);
+                        txtQuery.value = query;
+                    }
+                }
+            })();
+        </script>
+    </body>
+</html>

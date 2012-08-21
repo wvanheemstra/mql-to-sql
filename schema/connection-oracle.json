@@ -1,0 +1,11 @@
+{
+    "pdo": {
+        "dsn": "oci:dbname=//localhost:1521/xe",
+        "username": "sakila",
+        "password": "sakila",
+        "driver_options": {
+        }
+    },
+    "explicit_type_conversion": true,
+    "single_row_table": "dual"
+}
