@@ -766,18 +766,30 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 /*****************************************************************************
 *   Execute query / render result
 ******************************************************************************/
+function map_mql_to_php_type($mql_type){
+    switch ($mql_type){
+        case '/type/boolean':
+            $php_type = 'bool';
+            break;
+        case '/type/content':
+        case '/type/datetime':
+        case '/type/text':
+        case '/type/rawstring':
+            $php_type = 'string';
+            break;
+        case '/type/float': 
+            $php_type = 'float';
+            break;
+        case '/type/int':
+            $php_type = 'integer';
+            break;
+        default:
+            throw new Exception('No php type defined for mql type: '.$mql_type);
+    }
+    return $php_type;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+$statement_cache = array();
 
 function prepare_sql_statement($statement_text){
     global $pdo, $statement_cache;
@@ -825,7 +837,7 @@ function &execute_sql($statement_text, $params, $limit){
 		//echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
 		//exit;										// ADDED by wvh for debugging only
 		
-        $statement_handle->execute();
+        $statement_handle->execute();   // NOTE by wvh: CURRENTLY FAILS ON WHERE CLAUSE WHICH CONTAINS MORE THAN SOLELY THE ID FIELD !!! 
         if ($limit === -1) {
 //            $result = $statement_handle->fetchAll(PDO::FETCH_ASSOC);	// COMMENTED OUT by wvh: WRITE queries do not return rows
 			$result = []; // ADDED by wvh: for debugging only
