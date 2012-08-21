@@ -776,6 +776,70 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 
 
 
+
+
+
+
+
+
+
+
+
+
+function &execute_sql($statement_text, $params, $limit){
+    global $pdo, $noexecute;
+    if ($noexecute){
+        return array();
+    }
+	
+	// HIER GEBLEVEN
+	
+	
+}	
+
+function get_query_sql($query){
+        global $sql_dialect;
+    
+    $identifier_quote_start = $sql_dialect['identifier_quote_start'];
+    $identifier_quote_end = $sql_dialect['identifier_quote_end'];
+
+
+
+
+	// HIER GEBLEVEN
+	
+	
+	
+    //TODO: this implementation of limit is buggy!
+    //It works fine if applied to a top-level mql node,
+    //When used for a nested mql node, it does not take into 
+    //account that the limit should be applied only to the nested node
+    if ($query['limit']) {
+        if ($sql_dialect['supports_limit']) {
+            $sql .= "\nLIMIT ".$query['limit'];
+        }
+    }
+    return $sql;	
+}	
+
+function execute_sql_query(&$sql_query){
+    global $sql_dialect;
+    if ($sql_query['limit'] && !$sql_dialect['supports_limit']) {
+        //TODO: this implementation of limit is buggy!
+        //It works fine if applied to a top-level mql node,
+        //When used for a nested mql node, it does not take into 
+        //account that the limit should be applied only to the nested node
+        $limit = $sql_query['limit'];
+    }
+    else {
+        //limit has been implemented directly in SQL
+        $limit = -1;
+    }
+    $sql = get_query_sql($sql_query);	// HIER GEBLEVEN
+    $sql_query['sql'] = $sql;
+    return execute_sql($sql, $sql_query['params'], $limit);	// HIER GEBLEVEN
+}
+
 function get_result_object(&$mql_node, $query_index, &$result_object=NULL, $key=NULL){
     if($mql_node['query_index']!==$query_index){
         return;
@@ -830,8 +894,37 @@ function execute_sql_queries(&$sql_queries) {
         get_result_object($mql_node, $sql_query_index);
         $result_object = $mql_node['result_object'];
 
+        if ($merge_into = $sql_query['merge_into']) {
+            $merge_into_columns = $merge_into['columns'];		
+            $select_columns = $sql_query['select'];
+            $merge_into_values_new = array();
+            $merge_into_values_old = array();
+            $offset = -1;
 
-		// HIER GEBLEVEN
+            $index_name = $merge_into['index'];
+            $index = $sql_queries[$merge_into['query_index']]['indexes'][$index_name];
+            $index_columns = $index['columns'];
+            $extra_from_line = array(
+                'table' => $index['inline_table']
+            ,   'alias' => $index_name
+            );
+            $join_condition = '';
+            foreach ($index_columns as $position => $index_column) {
+                $join_condition .= ($join_condition==='' ? 'ON' : "\nAND").' '
+                                .   $index_name.'.'.$index_column.' = '
+                                .   array_search($merge_into_columns[$position], $select_columns, TRUE)
+                                ;
+            }
+            $from = &$sql_query['from'];
+            //php guru's, isn't there a func to get the first element of an array?
+            foreach ($from as &$first_from_line) { break; }
+            $first_from_line['join_condition'] = $join_condition;
+            $first_from_line['join_type'] = 'INNER';
+            array_unshift($from, $extra_from_line); 
+		}
+		$result = &$sql_query['results'];
+        $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN
+
 	
 	
 	
