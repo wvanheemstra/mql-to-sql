@@ -463,7 +463,7 @@ function map_mql_to_pdo_type($mql_type){
             break;
         case '/type/datetime':
         case '/type/text':
-        case '/type/float': //this feels so wrong, but PDO doesn't seem t support any decimal/float type :(
+        case '/type/float': //this feels so wrong, but PDO doesn't seem to support any decimal/float type :(
             $pdo_type = PDO::PARAM_STR;
             break;
         case '/type/int':
@@ -776,12 +776,40 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 
 
 
+function get_result_object(&$mql_node, $query_index, &$result_object=NULL, $key=NULL){
+    if($mql_node['query_index']!==$query_index){
+        return;
+    }
+    $object = array();
+    
+    if (is_array($result_object)) {
+        $result_object[$key] = &$object;
+    } 
+    else {
+        $result_object = &$object;
+    }
 
-
-
-
-
-
+    if (isset($mql_node['entries'])) {
+         get_result_object($mql_node['entries'], $query_index, $object, 0);
+    }
+    else 
+    if (isset($mql_node['properties'])) {
+        foreach ($mql_node['properties'] as $property_key => $property) {
+            if ($property['operator'] || $property['is_directive']) {
+                continue;
+            }
+            $value = $property['value'];
+            if (is_object($value) || is_array($value)){
+                get_result_object($property, $query_index, $object, $property_key);
+            }
+            else {
+                $object[$property_key] = $value;
+            }
+        }
+    }
+    $mql_node['result_object'] = $object;
+    return $object;
+}
 
 
 /**
@@ -793,14 +821,22 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 *
 *   return:
 */
+function execute_sql_queries(&$sql_queries) {
+    foreach($sql_queries as $sql_query_index => &$sql_query){
+
+        $indexes = &$sql_query['indexes'];
+                
+        $mql_node = $sql_query['mql_node'];
+        get_result_object($mql_node, $sql_query_index);
+        $result_object = $mql_node['result_object'];
 
 
-
-
-
-
-
-
+		// HIER GEBLEVEN
+	
+	
+	
+	}
+}
 
 /*****************************************************************************
 *   Handle request
@@ -828,10 +864,10 @@ function handle_query($mql_query_envelop, $query_key=0){
 	reset_ids();
     process_mql($mql_query, $tree);	
     generate_sql($tree, $sql_queries, 0);  	
-    //execute_sql_queries($sql_queries);	// HIER GEBLEVEN
+    execute_sql_queries($sql_queries);
 	
 	
-	
+	// HIER GEBLEVEN
 	
 	
 	
@@ -899,17 +935,49 @@ function init_metadata(){
 *   Database (PDO)
 ******************************************************************************/
 //$connection_file_name is defined in config.php
+$pdo = NULL;
+$explicit_type_conversion = NULL;
 
+$sql_dialect = NULL;
+function init_dialect($pdo_config){
+    global $sql_dialect;
+    $pdo_dsn = $pdo_config['dsn'];
+    $db_type = substr($pdo_dsn, 0, strpos($pdo_dsn, ':'));
+    include($db_type.'-dialect.php');
+}
 
+function init_pdo(){
+    global $connection_file_name, $pdo, 
+        $explicit_type_conversion, $sql_dialect
+    ;
+    if (!file_exists($connection_file_name)){
+        exit('Cannot find connection file "'.$connection_file_name.'".');
+    }
 
+    $connection_file_contents = file_get_contents($connection_file_name);
 
+    if (!$connection = json_decode($connection_file_contents, TRUE)) {
+        exit('connection is not valid json ('.get_last_json_error().').');
+    }
 
+    $pdo_config = $connection['pdo'];
 
+    if (!is_array($pdo_config)) {
+        exit('schema does not specify a valid pdo configuration.');
+    }
+    init_dialect($pdo_config);
 
-
-
-
-
+    $pdo = new PDO(
+        $pdo_config['dsn']
+    ,   $pdo_config['username']
+    ,   $pdo_config['password']
+    ,   $pdo_config['driver_options']
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, FALSE);
+    $pdo->setAttribute(PDO::ATTR_CASE, PDO::CASE_LOWER);
+    $explicit_type_conversion = $connection['explicit_type_conversion'];
+}
 /*****************************************************************************
 *   misc
 ******************************************************************************/
@@ -1000,7 +1068,7 @@ function handle_request(){
 ******************************************************************************/
 function run() {
     init_metadata();
-//    init_pdo();
+    init_pdo();
     init_args();
     init_queries();
     handle_request();
