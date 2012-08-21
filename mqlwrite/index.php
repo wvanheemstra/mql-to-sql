@@ -366,7 +366,7 @@ function get_p_name(){
     return 'p'.(++$p_id);
 }
 
-// ADDED by wvh for UPDATE
+// ADDED by wvh: UPDATE behaves like FROM but not completely
 function get_update_clause(&$mql_node, $t_alias, $child_t_alias, $schema_name, $table_name, &$query){
     $schema = isset($mql_node['schema'])?$mql_node['schema']:NULL;
     $update = &$query['update'];
@@ -508,24 +508,24 @@ function handle_filter_property(&$queries, $query_index, $t_alias, $column_name,
     $from = &$query['from'];
     $params = &$query['params'];
     $where = &$query['where'];
-	$set = &$query['set']; // ADDED by wvh for SET
+	$set = &$query['set']; // ADDED by wvh: SET behaves like WHERE but not completely
 	
     $num_from_lines = count($from);
     if ($num_from_lines > 1){
         $from_line = &$from[$num_from_lines -  1];
         $from_or_where = &$from_line['join_condition'];
         $from_or_where .= "\n".'AND '.$t_alias.'.'.$column_name;
-		$set .= ','.$t_alias.'.'.$column_name; // ADDED by wvh for SET
+		$set .= ','.$t_alias.'.'.$column_name; // ADDED by wvh: SET behaves like WHERE but not completely
     }	
     else {
         $from_or_where = &$query['where'];
         $from_or_where .= ($from_or_where? "\n".'AND' : 'WHERE')
                         .' '.$t_alias.'.'.$column_name;					
-		$set .= ($set? ',' : 'SET').' '.$t_alias.'.'.$column_name; // ADDED by wvh for SET									
+		$set .= ($set? ',' : 'SET').' '.$t_alias.'.'.$column_name; // ADDED by wvh: SET behaves like WHERE but not completely									
     }
 
     //prepare right hand side of the filter expression
-		$set .= ' = '; // ADDED by wvh for SET
+		$set .= ' = '; // ADDED by wvh: SET behaves like WHERE but not completely
         $add_closing_parenthesis = FALSE;
         $add_closing_escape_clause = FALSE;
     if ($operator = $property['operator']) {
@@ -564,7 +564,7 @@ function handle_filter_property(&$queries, $query_index, $t_alias, $column_name,
         $from_or_where .= ' = ';
     }
     //prepare the right hand side of the comparison expression
-    add_parameter_for_property($set, $params, $property); // ADDED by wvh for SET
+    add_parameter_for_property($set, $params, $property); // ADDED by wvh: SET behaves like WHERE but not completely
 
     add_parameter_for_property($from_or_where, $params, $property);	
 	
@@ -598,8 +598,8 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
     $query = &$queries[$query_index];
     if (!$query){
         $query = array(
-            'update'                =>  ''		// added by wvh
-        ,   'set'                	=>  ''		// added by wvh			
+            'update'                =>  array()	// added by wvh: UPDATE behaves like FROM, but not completely
+        ,   'set'                	=>  ''		// added by wvh: SET behaves like WHERE, but not completely			
         ,   'select'                =>  array()
         ,   'from'                  =>  array()
         ,   'where'                 =>  ''
@@ -613,8 +613,8 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
         );
         $queries[$query_index] = &$query;        
     }
-    $update = &$query['update'];		// added by wvh	
-    $set = &$query['set'];				// added by wvh
+    $update = &$query['update'];		// added by wvh: UPDATE behaves like FROM, but not completely	
+    $set = &$query['set'];				// added by wvh: SET behaves like WHERE, but not completely
     $select = &$query['select'];
     $from   = &$query['from'];
     $where  = &$query['where'];
@@ -651,12 +651,7 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 	$t_alias = get_t_alias();
 	
     get_from_clause($mql_node, $t_alias, $child_t_alias, $schema_name, $table_name, $query);
-	
-	
-	
-	get_update_clause($mql_node, $t_alias, $child_t_alias, $schema_name, $table_name, $query); // ADDED by wvh for UPDATE
-	
-	
+	get_update_clause($mql_node, $t_alias, $child_t_alias, $schema_name, $table_name, $query); // ADDED by wvh: UPDATE behaves like FROM, but not completely
 	
 	if (array_key_exists('properties', $mql_node)) {
 	    $properties = &$mql_node['properties'];
@@ -784,17 +779,67 @@ function generate_sql(&$mql_node, &$queries, $query_index, $child_t_alias=NULL, 
 
 
 
-
+function prepare_sql_statement($statement_text){
+    global $pdo, $statement_cache;
+    if (isset($statement_cache[$statement_text])){
+        $statement_handle = $statement_cache[$statement_text];
+    } else {
+        $statement_handle = $pdo->prepare($statement_text);
+        $statement_cache[$statement_text] = $statement_handle;
+    }
+    return $statement_handle;
+}
 
 function &execute_sql($statement_text, $params, $limit){
     global $pdo, $noexecute;
     if ($noexecute){
         return array();
     }
+    try {
 	
-	// HIER GEBLEVEN
+		//for($i=0;$i<count($params);$i++) // ADDED by wvh for debugging only
+		//{								// ADDED by wvh for debugging only
+		//	$rs=$params[$i];			// ADDED by wvh for debugging only
+		//}								// ADDED by wvh for debugging only
+		//echo implode(",", $rs);			// ADDED by wvh for debugging only
+		//exit;							// ADDED by wvh for debugging only
+		
+		//echo $statement_text; 	// ADDED by wvh for debugging only
+		//exit; 					// ADDED by wvh for debugging only
 	
+		//$statement_text = 'UPDATE sakila.customer t1\nSET t1.customer_id = :p1, t1.first_name = :p3, t1.last_name = :p5\nWHERE t1.customer_id = :p2'; // ADDED by wvh for debugging only
 	
+        $statement_handle = prepare_sql_statement($statement_text);
+        foreach($params as $param_key => $param){
+            $statement_handle->bindValue(
+                $param['name']
+            ,   $param['value']
+            ,   $param['type']
+            );
+        }
+		
+		//echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
+		//exit;										// ADDED by wvh for debugging only
+		
+        $statement_handle->execute();
+        if ($limit === -1) {
+            $result = $statement_handle->fetchAll(PDO::FETCH_ASSOC);
+        }
+        else {
+            $result = array();
+            while ($limit-- && $row = $statement_handle->fetch(PDO::FETCH_ASSOC)) {
+                $result[] = $row;
+            }
+        }
+        $statement_handle->closeCursor();
+    } catch (Exception $exception) {
+        throw new Exception(
+            $exception->getMessage().
+            ' Offending statement: '.$statement_text
+			.' '.$statement_handle->debugDumpParams() // ADDED by wvh for debugging only
+        );
+    }	
+    return $result;	
 }	
 
 function get_query_sql($query){
@@ -803,21 +848,48 @@ function get_query_sql($query){
     $identifier_quote_start = $sql_dialect['identifier_quote_start'];
     $identifier_quote_end = $sql_dialect['identifier_quote_end'];
 
-	// ADDED by wvh for UPDATE
+	// ADDED by wvh: UPDATE behaves like FROM, but not completely
     $sql = 'UPDATE';
 	
-	// ADDED by wvh for UPDATE
+	// ADDED by wvh: UPDATE behaves like FROM, but not completely
     foreach ($query['update'] as $index => $update_line) {
         if (array_key_exists('table', $update_line)) {
-            $sql .= " ".$update_line['table'].' '.$update_line['alias']; // wvh: Do we need an alias of the table here??
+            $sql .= " ".$update_line['table'].' '.$update_line['alias'];
         }
 	}
-	
-	// ADDED by wvh for SET	
-    $set = $query['set'];
-	$sql .= "\n".$set;
-	
+
 	$optionality_groups = array();
+/**	COMMENTED OUT by wvh: FROM is not applicable to WRITE queries
+    foreach ($query['from'] as $index => $from_line) {
+        if (isset($from_line['optionality_group'])) {
+                        $optionality_group_name = $from_line['optionality_group'];
+            if (!array_key_exists ($optionality_group_name, $optionality_groups)) {
+                $optionality_groups[$optionality_group_name] = array();
+            }
+            $optionality_group = &$optionality_groups[$optionality_group_name];
+            $optionality_group[] = $from_line['optionality_group_column'];
+        }
+        $from_or_join = $index && (isset($from_line['join_type']));
+        if ($from_or_join) {
+            $sql .= "\n".$from_line['join_type'].' JOIN '
+                    .$from_line['table'].' '.$from_line['alias']
+                    ."\n".$from_line['join_condition']
+            ;
+        }
+        else
+        if (array_key_exists('table', $from_line)) {
+            $sql .= "\nFROM ".$from_line['table'].' '.$from_line['alias'];
+        }
+        else
+        if ($from_line['join_condition']){
+            //these are filter condition but we write them in the join
+            //this is required to handle outer joins.
+            $sql .= "\n".$from_line['join_condition'];
+        }
+    }
+*/
+	$set = $query['set']; 			// ADDED by wvh: SET behaves like WHERE but not completely
+    $sql .= ($set? "\n".$set : '');	// ADDED by wvh: SET behaves like WHERE but not completely
 	
     $where = $query['where'];
     foreach ($optionality_groups as $k => $v) {
@@ -840,14 +912,11 @@ function get_query_sql($query){
             $where .= "\nWHERE";
         }
         $where.= ' (('.$condition_null.') OR ('.$condition_not_null.'))';
-    }
+    }	
     
     $sql .= ($where? "\n".$where : '')
 //    .       ($query['order_by']? "\n".$query['order_by'] : '')  // wvh: ORDER BY is not applicable to WRITE queries
     ;	
-	
-	// HIER GEBLEVEN
-	
     return $sql;	
 }	
 
@@ -864,9 +933,9 @@ function execute_sql_query(&$sql_query){
         //limit has been implemented directly in SQL
         $limit = -1;
     }
-    $sql = get_query_sql($sql_query);	// HIER GEBLEVEN
+    $sql = get_query_sql($sql_query);
     $sql_query['sql'] = $sql;
-    return execute_sql($sql, $sql_query['params'], $limit);	// HIER GEBLEVEN
+    return execute_sql($sql, $sql_query['params'], $limit);
 }
 
 function get_result_object(&$mql_node, $query_index, &$result_object=NULL, $key=NULL){
@@ -926,6 +995,9 @@ function execute_sql_queries(&$sql_queries) {
         if ($merge_into = $sql_query['merge_into']) {
             $merge_into_columns = $merge_into['columns'];		
             $select_columns = $sql_query['select'];
+			
+			$set_columns = $sql_query['set'];	// ADDED by wvh for SET, behaves similar to SELECT but not completely
+			
             $merge_into_values_new = array();
             $merge_into_values_old = array();
             $offset = -1;
@@ -952,7 +1024,7 @@ function execute_sql_queries(&$sql_queries) {
             array_unshift($from, $extra_from_line); 
 		}
 		$result = &$sql_query['results'];
-        $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN
+        $rows = execute_sql_query($sql_query);		// HIER GEBLEVEN: Make sure that $sql_query['params'] is properly filled
 
 	
 	
