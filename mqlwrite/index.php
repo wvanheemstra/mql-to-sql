@@ -787,6 +787,9 @@ function prepare_sql_statement($statement_text){
         $statement_handle = $pdo->prepare($statement_text);
         $statement_cache[$statement_text] = $statement_handle;
     }
+	
+	echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
+	
     return $statement_handle;
 }
 
@@ -808,7 +811,8 @@ function &execute_sql($statement_text, $params, $limit){
 		//exit; 					// ADDED by wvh for debugging only
 	
 		//$statement_text = 'UPDATE sakila.customer t1\nSET t1.customer_id = :p1, t1.first_name = :p3, t1.last_name = :p5\nWHERE t1.customer_id = :p2'; // ADDED by wvh for debugging only
-	
+		//$statement_text = "UPDATE sakila.customer t1 SET t1.customer_id = :p1, t1.first_name = 'MARY', t1.last_name = 'SMITH' WHERE t1.customer_id = :p1"; // ADDED by wvh for debugging only
+		
         $statement_handle = prepare_sql_statement($statement_text);
         foreach($params as $param_key => $param){
             $statement_handle->bindValue(
@@ -823,13 +827,15 @@ function &execute_sql($statement_text, $params, $limit){
 		
         $statement_handle->execute();
         if ($limit === -1) {
-            $result = $statement_handle->fetchAll(PDO::FETCH_ASSOC);
+//            $result = $statement_handle->fetchAll(PDO::FETCH_ASSOC);	// COMMENTED OUT by wvh: WRITE queries do not return rows
+			$result = []; // ADDED by wvh: for debugging only
         }
         else {
             $result = array();
-            while ($limit-- && $row = $statement_handle->fetch(PDO::FETCH_ASSOC)) {
-                $result[] = $row;
-            }
+//            while ($limit-- && $row = $statement_handle->fetch(PDO::FETCH_ASSOC)) {		// COMMENTED OUT by wvh: WRITE queries do not return rows
+//                $result[] = $row;
+//            }
+			$result = []; // ADDED by wvh: for debugging only
         }
         $statement_handle->closeCursor();
     } catch (Exception $exception) {
