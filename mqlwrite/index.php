@@ -524,8 +524,7 @@ function add_parameter_for_where_property(&$where, &$params, $property){
         }
     }
     else {
-	
-//        add_where_parameter($where, $params, $property_value, $pdo_type);  // TEMPORARILY COMMENTED OUT by wvh to prevent more than one parameter values in WHERE clause
+        add_where_parameter($where, $params, $property_value, $pdo_type);  // TEMPORARILY COMMENTED OUT by wvh to prevent more than one parameter values in WHERE clause
     }
 }
 
@@ -611,12 +610,21 @@ function handle_filter_property(&$queries, $query_index, $t_alias, $column_name,
     else {
         //If no operator is specified, 
         //the comparison is automatically with equals.
-        $from_or_where .= ' = ';
+		
+		// CHANGED by wvh: only supply an = sign once
+		$pos = strpos($from_or_where,'=');
+		if($pos === false) {
+			// = sign not yet found in string
+			$from_or_where .= ' = ';
+		}
     }
     //prepare the right hand side of the comparison expression
     add_parameter_for_set_property($set, $params, $property); // ADDED by wvh: SET behaves like WHERE but not completely
 
-    add_parameter_for_where_property($from_or_where, $params, $property); // RENAMED by wvh: Now specific for WHERE parameters	
+	$pos = strpos($where,':');
+	if($pos === false) {
+		add_parameter_for_where_property($from_or_where, $params, $property); // RENAMED by wvh: Now specific for WHERE parameters and adds parameter only for the first parameter	
+	}
 	
     if ($add_closing_parenthesis) {
         $from_or_where .= ')';
@@ -884,7 +892,7 @@ function &execute_sql($statement_text, $params, $limit){
             );
         }
 		
-		echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
+		//echo $statement_handle->debugDumpParams(); // ADDED by wvh for debugging only
 		//exit;										// ADDED by wvh for debugging only
 		
         $statement_handle->execute();   // NOTE by wvh: CURRENTLY FAILS ON WHERE CLAUSE WHICH CONTAINS MORE THAN SOLELY THE ID FIELD !!! 
